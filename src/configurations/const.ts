@@ -1,0 +1,2 @@
+export const REACT_APP_TODO_API_URL = process.env.REACT_APP_TODO_API_URL || '';
+export const REACT_APP_FINAL_INSPECTION_API_KEY = process.env.REACT_APP_FINAL_INSPECTION_API_KEY || '';
