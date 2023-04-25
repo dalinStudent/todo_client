@@ -1,6 +1,7 @@
 import React, { memo, useState } from "react"
-import CardComponent from "./Card";
+import Card from "./Card";
 import { Box, Button, Grid, Paper, TextField, styled } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
 import { createTodoActionSyn } from "../../features/todos/actions";
 import { useDispatch } from "react-redux";
 
@@ -40,13 +41,13 @@ const ListTodo = () => {
     const handleInputChange = (evt: any) => {
         setTodo(evt.target.value);
         setIsEmpty(false);
-      };
+    };
 
     const handleKeyPress = (event: any) => {
         if (event.key === 'Enter') {
           onSubmit(event);
         }
-      };
+    };
 
     return (
         <>
@@ -56,23 +57,33 @@ const ListTodo = () => {
                     size="small" 
                     label="Todo Title" 
                     value={todo} 
-                    variant="outlined" 
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
                     error={isEmpty}
                     InputProps={{
                         endAdornment: isEmpty && (
-                        <span style={{ color: 'red' }}>Required!</span>
+                            <span style={{ color: 'red' }}>Required!</span>
                         ),
                     }}
                     required 
                 />
-                <Button sx={{marginLeft: '10px'}} variant="contained" onClick={onSubmit}>Create New</Button>
+                <Button sx={{ml: 1}} variant="contained" onClick={onSubmit}>Create New</Button>
+                <br></br>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    label="Search"
+                    type="text"
+                    value={todo}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    variant="standard"
+                />          
                 <Box sx={{ flexGrow: 1, marginTop: '20px'}}>
                     <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
                         <Grid item xs={2} sm={4} md={4} sx={{ marginBottom: '20px' }}>
                             <Item sx={{backgroundColor: 'teal'}}>
-                                <CardComponent /> 
+                                <Card /> 
                             </Item>
                         </Grid>
                     </Grid>

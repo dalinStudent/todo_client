@@ -1,5 +1,5 @@
 import React, { memo } from "react"
-import ListTodo from "../components/todos/ListTodo"
+import ListTodo from "./todos/ListTodo"
 
 const HomePage = () => {
     return <ListTodo />

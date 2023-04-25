@@ -4,20 +4,18 @@ import {
   Card, 
   CardActions, 
   CardContent, 
-  Checkbox, 
   Dialog, 
   DialogActions, 
   DialogContent, 
-  DialogContentText, 
   DialogTitle, 
-  FormControlLabel, 
   IconButton, 
   TextField, 
   Tooltip, 
-  Typography
+  Typography,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import CheckIcon from '@mui/icons-material/Check';
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { 
@@ -28,23 +26,22 @@ import {
 import Swal from "sweetalert2";
 import { Todo } from "../../interfaces/todo";
 
+
 const CardComponent = () => {
+    const [isEmpty, setIsEmpty] = useState(false);
     const { todosList } = useSelector((state: RootState) => state.todoMgt);
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
     const [todoToUpdate, setTodoToUpdate] = useState<Todo | null>(null);
     const [todo, setTodo] = useState('');
     const [isCompleted, setIsCompleted] = useState(false);
-    const id = todosList.find((t) => t.id === todo);
 
     const handleOpen = (todo: Todo | undefined): void => {
       if (!todo) return;
       setOpen(true);
       setTodoToUpdate(todo || null);
       setTodo(todo && todo.todo ? todo.todo : '');
-      setIsCompleted(todo && todo.isCompleted ? todo.isCompleted : false);
     };
-    
 
     const handleClose = () => {
       setOpen(false);
@@ -53,10 +50,14 @@ const CardComponent = () => {
       setIsCompleted(false);
     };
 
-    const handleCompletedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { checked } = event.target;
-      setIsCompleted(checked);
-    };
+    const handleCompletedChange = (todo: Todo | null | undefined, event: React.MouseEvent<HTMLButtonElement>): void => {
+      if(!todo) return;
+      const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
+      if (todo.hasOwnProperty('id')) {
+        dispatch(updateTodoActionSyn(updatedTodo));
+      }
+      setTodoToUpdate(todo || null);
+    }
 
     useEffect(() => {
         dispatch(fetchTodoActionSyn());
@@ -68,11 +69,16 @@ const CardComponent = () => {
 
     const onSubmit = (evt: any) => {
       evt.preventDefault();
+
+      if (!todo) {
+        setIsEmpty(true);
+        return;
+      }
     
       const updatedTodo: Todo = {
         id: todoToUpdate!.id,
         todo,
-        isCompleted,
+        isCompleted: todoToUpdate!.isCompleted,
         createdDt: todoToUpdate!.createdDt,
       };
     
@@ -95,27 +101,39 @@ const CardComponent = () => {
       })
     }
 
+    const handleInputChange = (evt: any) => {
+      setTodo(evt.target.value);
+      setIsEmpty(false);
+    };
+
+    const handleKeyPress = (event: any) => {
+        if (event.key === 'Enter') {
+          onSubmit(event);
+        }
+    };
     return (
       <>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Subscribe</DialogTitle>
+        <DialogTitle>Update Todo</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            id="name"
             label="Todo Title"
             type="text"
             value={todo}
-              onChange={(e) => setTodo(e.target.value)}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            error={isEmpty}
             fullWidth
             variant="standard"
-          />
-            <FormControlLabel
-              control={<Checkbox checked={isCompleted} onChange={handleCompletedChange} />}
-              label="Completed"
-            />
-          
+            InputProps={{
+              endAdornment: isEmpty && (
+                  <span style={{ color: 'red' }}>Required!</span>
+              ),
+            }}
+            required 
+          />          
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -127,9 +145,19 @@ const CardComponent = () => {
       {todosList.map((item, index)=>(
         <Card key={index} sx={{ minWidth: 275, marginTop: '20px'}}>
         <CardContent>
-          <Typography sx={{ mb: 1.5 }} color="text.secondary">
-            Title Todo: {item.todo}
-          </Typography>
+          <div style={{
+                display: 'flex', 
+                color: 'gray', 
+                fontFamily: '"Roboto","Helvetica","Arial",sans-serif', 
+                fontSize: '1rem',
+                fontWeight: 400
+              }}
+          >
+          Title Todo: 
+            <Typography sx={{ textDecoration: item.isCompleted ? 'line-through' : 'none', ml: 1 }}>
+              {item.todo}
+            </Typography> 
+          </div>
           <div style={{display: 'flex'}}>
           <p style={{
             color: 'gray', 
@@ -138,10 +166,14 @@ const CardComponent = () => {
             fontWeight: 400
             }}
             > Status Todo: </p>
-            {item.isCompleted === true 
-              ? <Checkbox defaultChecked /> 
-              : <Checkbox />
-            }
+              <Tooltip 
+                title={item.isCompleted ? 'Mark as Uncomplete' : 'Mark as Complete'} 
+                placement="right-start"
+              >
+                <CheckIcon color={item.isCompleted ? 'primary' : 'error'} sx={{ mt: 1.5 }}
+                  onClick={(event: any) => handleCompletedChange(item, event)} 
+                />
+              </Tooltip> 
           </div>
           <Typography sx={{ mb: 1.5}} color="text.secondary">
             Created Date: {item.createdDt}
@@ -149,18 +181,17 @@ const CardComponent = () => {
         </CardContent>
         <CardActions>
           <Tooltip title="Remove">
-            <IconButton color="error">
-              <DeleteOutlineIcon  sx={{marginRight: '0px'}}
-                onClick={(e) => {
+            <IconButton color="error" 
+              onClick={(e) => {
                   e.stopPropagation()
                     showModalAlert(item.id)
-                  }}
-              />
+                  }}>
+              <DeleteOutlineIcon  sx={{marginRight: '0px'}} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit">
             <IconButton color="primary" onClick={() => handleOpen(item)}>
-              <EditOutlinedIcon sx={{marginRight: '0px'}} />
+              <EditOutlinedIcon sx={{ marginRight: '0px' }} />
             </IconButton>
           </Tooltip>
         </CardActions>
